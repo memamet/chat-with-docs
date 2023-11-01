@@ -19,11 +19,9 @@ export const POST = async (req: NextRequest) => {
 
   const { id: userId } = user
 
-  if (!userId)
-    return new Response('Unauthorized', { status: 401 })
+  if (!userId) return new Response('Unauthorized', { status: 401 })
 
-  const { fileId, message } =
-    SendMessageValidator.parse(body)
+  const { fileId, message } = SendMessageValidator.parse(body)
 
   const file = await db.file.findFirst({
     where: {
@@ -32,8 +30,7 @@ export const POST = async (req: NextRequest) => {
     },
   })
 
-  if (!file)
-    return new Response('Not found', { status: 404 })
+  if (!file) return new Response('Not found', { status: 404 })
 
   await db.message.create({
     data: {
@@ -50,20 +47,14 @@ export const POST = async (req: NextRequest) => {
   })
 
   const pinecone = await getPineconeClient()
-  const pineconeIndex = pinecone.Index('quill')
+  const pineconeIndex = pinecone.Index('chat-with-docs')
 
-  const vectorStore = await PineconeStore.fromExistingIndex(
-    embeddings,
-    {
-      pineconeIndex,
-      namespace: file.id,
-    }
-  )
+  const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
+    pineconeIndex,
+    // namespace: file.id,
+  })
 
-  const results = await vectorStore.similaritySearch(
-    message,
-    4
-  )
+  const results = await vectorStore.similaritySearch(message, 4)
 
   const prevMessages = await db.message.findMany({
     where: {
@@ -76,14 +67,12 @@ export const POST = async (req: NextRequest) => {
   })
 
   const formattedPrevMessages = prevMessages.map((msg) => ({
-    role: msg.isUserMessage
-      ? ('user' as const)
-      : ('assistant' as const),
+    role: msg.isUserMessage ? ('user' as const) : ('assistant' as const),
     content: msg.text,
   }))
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-4',
     temperature: 0,
     stream: true,
     messages: [
@@ -100,8 +89,7 @@ export const POST = async (req: NextRequest) => {
   
   PREVIOUS CONVERSATION:
   ${formattedPrevMessages.map((message) => {
-    if (message.role === 'user')
-      return `User: ${message.content}\n`
+    if (message.role === 'user') return `User: ${message.content}\n`
     return `Assistant: ${message.content}\n`
   })}
   

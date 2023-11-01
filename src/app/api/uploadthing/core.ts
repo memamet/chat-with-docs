@@ -1,9 +1,6 @@
 import { db } from '@/db'
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
-import {
-  createUploadthing,
-  type FileRouter,
-} from 'uploadthing/next'
+import { createUploadthing, type FileRouter } from 'uploadthing/next'
 
 import { PDFLoader } from 'langchain/document_loaders/fs/pdf'
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai'
@@ -71,17 +68,11 @@ const onUploadComplete = async ({
     const { isSubscribed } = subscriptionPlan
 
     const isProExceeded =
-      pagesAmt >
-      PLANS.find((plan) => plan.name === 'Pro')!.pagesPerPdf
+      pagesAmt > PLANS.find((plan) => plan.name === 'Pro')!.pagesPerPdf
     const isFreeExceeded =
-      pagesAmt >
-      PLANS.find((plan) => plan.name === 'Free')!
-        .pagesPerPdf
+      pagesAmt > PLANS.find((plan) => plan.name === 'Free')!.pagesPerPdf
 
-    if (
-      (isSubscribed && isProExceeded) ||
-      (!isSubscribed && isFreeExceeded)
-    ) {
+    if ((isSubscribed && isProExceeded) || (!isSubscribed && isFreeExceeded)) {
       await db.file.update({
         data: {
           uploadStatus: 'FAILED',
@@ -94,20 +85,16 @@ const onUploadComplete = async ({
 
     // vectorize and index entire document
     const pinecone = await getPineconeClient()
-    const pineconeIndex = pinecone.Index('quill')
+    const pineconeIndex = pinecone.Index('chat-with-docs')
 
     const embeddings = new OpenAIEmbeddings({
       openAIApiKey: process.env.OPENAI_API_KEY,
     })
 
-    await PineconeStore.fromDocuments(
-      pageLevelDocs,
-      embeddings,
-      {
-        pineconeIndex,
-        namespace: createdFile.id,
-      }
-    )
+    await PineconeStore.fromDocuments(pageLevelDocs, embeddings, {
+      pineconeIndex,
+      // namespace: createdFile.id,
+    })
 
     await db.file.update({
       data: {
@@ -133,7 +120,7 @@ export const ourFileRouter = {
   freePlanUploader: f({ pdf: { maxFileSize: '4MB' } })
     .middleware(middleware)
     .onUploadComplete(onUploadComplete),
-  proPlanUploader: f({ pdf: { maxFileSize: '16MB' } })
+  proPlanUploader: f({ pdf: { maxFileSize: '32MB' } })
     .middleware(middleware)
     .onUploadComplete(onUploadComplete),
 } satisfies FileRouter
