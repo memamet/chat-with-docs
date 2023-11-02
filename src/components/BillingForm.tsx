@@ -41,9 +41,9 @@ const BillingForm = ({
     })
 
   return (
-    <MaxWidthWrapper className='max-w-5xl'>
+    <MaxWidthWrapper className="max-w-5xl">
       <form
-        className='mt-12'
+        className="mt-12"
         onSubmit={(e) => {
           e.preventDefault()
           createStripeSession()
@@ -52,15 +52,15 @@ const BillingForm = ({
           <CardHeader>
             <CardTitle>Subscription Plan</CardTitle>
             <CardDescription>
-              You are currently on the{' '}
-              <strong>{subscriptionPlan.name}</strong> plan.
+              You are currently on the <strong>{subscriptionPlan.name}</strong>{' '}
+              plan.
             </CardDescription>
           </CardHeader>
 
-          <CardFooter className='flex flex-col items-start space-y-2 md:flex-row md:justify-between md:space-x-0'>
-            <Button type='submit'>
+          <CardFooter className="flex flex-col items-start space-y-2 md:flex-row md:justify-between md:space-x-0">
+            <Button type="submit">
               {isLoading ? (
-                <Loader2 className='mr-4 h-4 w-4 animate-spin' />
+                <Loader2 className="mr-4 h-4 w-4 animate-spin" />
               ) : null}
               {subscriptionPlan.isSubscribed
                 ? 'Manage Subscription'
@@ -68,14 +68,11 @@ const BillingForm = ({
             </Button>
 
             {subscriptionPlan.isSubscribed ? (
-              <p className='rounded-full text-xs font-medium'>
+              <p className="rounded-full text-xs font-medium">
                 {subscriptionPlan.isCanceled
                   ? 'Your plan will be canceled on '
-                  : 'Your plan renews on'}
-                {format(
-                  subscriptionPlan.stripeCurrentPeriodEnd!,
-                  'dd.MM.yyyy'
-                )}
+                  : 'Your plan renews on '}
+                {format(subscriptionPlan.stripeCurrentPeriodEnd!, 'dd.MM.yyyy')}
                 .
               </p>
             ) : null}
